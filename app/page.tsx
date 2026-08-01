@@ -237,10 +237,23 @@ export default function Home() {
           </form>
 
           <aside style={{ background: "white", padding: 22, borderRadius: 16 }}>
-            <h2>รายการจองล่าสุด</h2>
-            
-        </section>
-      </section>
-    </main>
-  );
+  <h2>ข้อมูลการจองเป็นส่วนตัว</h2>
+
+  <p style={{ lineHeight: 1.7, color: "#6b5d70" }}>
+    ระบบจะแสดงเฉพาะฟอร์มจองสำหรับลูกค้า
+    รายการจองทั้งหมดจะดูได้เฉพาะแอดมินเท่านั้น
+  </p>
+
+  <div style={{ marginTop: 18, padding: 16, borderRadius: 12, background: "#f8f1e7" }}>
+    <strong>หลังจากจองสำเร็จ</strong>
+    <p style={{ marginBottom: 0 }}>
+      แอดมินจะตรวจสอบข้อมูลและอัปเดตสถานะผ่านหน้า Admin Dashboard
+    </p>
+  </div>
+</aside>
+    
+</section>
+</section>
+</main>
+);
 }
