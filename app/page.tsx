@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Booking = {
   id: string;
@@ -75,6 +75,7 @@ export default function Home() {
   const [service, setService] = useState(services[0].name);
   const [bookingDate, setBookingDate] = useState("2026-08-01");
   const [bookingTime, setBookingTime] = useState(slots[3]);
+  const [availableSlots, setAvailableSlots] = useState(slots);
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [lineId, setLineId] = useState("");
@@ -87,6 +88,21 @@ export default function Home() {
     () => services.find((item) => item.name === service) ?? services[0],
     [service]
   );
+  useEffect(() => {
+  async function loadAvailableSlots() {
+    const response = await fetch(`/api/bookings/available-slots?date=${bookingDate}`);
+    const data = await response.json();
+    const nextSlots = data.availableSlots || slots;
+
+    setAvailableSlots(nextSlots);
+
+    if (!nextSlots.includes(bookingTime)) {
+      setBookingTime(nextSlots[0] || "");
+    }
+  }
+
+    loadAvailableSlots();
+}, [bookingDate]);
 
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -193,11 +209,14 @@ export default function Home() {
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
               เวลา
-              <select value={bookingTime} onChange={(event) => setBookingTime(event.target.value)} style={{ padding: 12 }}>
-                {slots.map((slot) => (
+              <select value={bookingTime} onChange={(event) => setBookingTime(event.target.value)} disabled={availableSlots.length === 0} style={{ padding: 12 }}>
+               {availableSlots.map((slot) => (
                   <option key={slot}>{slot}</option>
                 ))}
               </select>
+              {availableSlots.length === 0 && (
+  <p style={{ margin: 0, color: "#b42318" }}>วันนี้คิวเต็มแล้ว กรุณาเลือกวันอื่น</p>
+)}
             </label>
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
