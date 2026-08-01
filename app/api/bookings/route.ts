@@ -28,15 +28,48 @@ export async function POST(request: Request) {
     );
   }
 
-  const booking = {
-    id: crypto.randomUUID(),
-    ...payload,
-    status: "รอชำระเงิน",
-    created_at: new Date().toISOString()
-  };
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return NextResponse.json(
+      { error: "ยังไม่ได้ตั้งค่า Supabase Environment Variables" },
+      { status: 500 }
+    );
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/bookings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      customer_name: payload.customer_name,
+      phone: payload.phone,
+      line_id: payload.line_id,
+      service: payload.service,
+      booking_date: payload.booking_date,
+      booking_time: payload.booking_time,
+      note: payload.note || "",
+      amount: payload.amount,
+      status: "รอชำระเงิน"
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return NextResponse.json(
+      { error: data.message || "บันทึกข้อมูลลง Supabase ไม่สำเร็จ" },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
-    booking,
-    demoMode: true
+    booking: data[0],
+    demoMode: false
   });
 }
