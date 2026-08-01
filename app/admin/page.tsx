@@ -19,8 +19,32 @@ type Booking = {
 const statuses = ["รอชำระเงิน", "รอตรวจสลิป", "ยืนยันแล้ว", "ยกเลิก"];
 
 export default function AdminPage() {
+  const [password, setPassword] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  async function login(event: React.FormEvent) {
+    event.preventDefault();
+    setLoginError("");
+
+    const response = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ password })
+    });
+
+    if (!response.ok) {
+      setLoginError("รหัสผ่านไม่ถูกต้อง");
+      return;
+    }
+
+    setIsLoggedIn(true);
+    setPassword("");
+  }
 
   async function loadBookings() {
     setLoading(true);
@@ -45,8 +69,42 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    loadBookings();
-  }, []);
+    if (isLoggedIn) {
+      loadBookings();
+    }
+  }, [isLoggedIn]);
+
+  if (!isLoggedIn) {
+    return (
+      <main style={{ minHeight: "100vh", padding: 32, fontFamily: "sans-serif", background: "#f8f1e7", display: "grid", placeItems: "center" }}>
+        <form onSubmit={login} style={{ width: "100%", maxWidth: 420, background: "white", borderRadius: 16, padding: 28 }}>
+          <p style={{ display: "inline-block", padding: "8px 14px", borderRadius: 999, background: "#392446", color: "white", fontWeight: 700 }}>
+            Admin Login
+          </p>
+
+          <h1 style={{ fontSize: 32 }}>Aora Fortune Booking</h1>
+          <p style={{ color: "#6b5d70" }}>กรอกรหัสผ่านเพื่อเข้าสู่หน้าแอดมิน</p>
+
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="รหัสผ่านแอดมิน"
+            style={{ width: "100%", padding: 14, borderRadius: 10, border: "1px solid #ddd", marginTop: 12, boxSizing: "border-box" }}
+          />
+
+          {loginError && <p style={{ color: "#b42318" }}>{loginError}</p>}
+
+          <button
+            type="submit"
+            style={{ width: "100%", marginTop: 16, padding: 14, borderRadius: 10, border: 0, background: "#392446", color: "white", fontWeight: 700, cursor: "pointer" }}
+          >
+            เข้าสู่ระบบ
+          </button>
+        </form>
+      </main>
+    );
+  }
 
   return (
     <main style={{ minHeight: "100vh", padding: 32, fontFamily: "sans-serif", background: "#f8f1e7" }}>
@@ -56,16 +114,11 @@ export default function AdminPage() {
         </p>
 
         <h1 style={{ fontSize: 44, marginTop: 20 }}>Aora Fortune Booking</h1>
-        <p style={{ fontSize: 18, color: "#6b5d70" }}>
-          จัดการรายการจองและเปลี่ยนสถานะ
-        </p>
+        <p style={{ fontSize: 18, color: "#6b5d70" }}>จัดการรายการจองและเปลี่ยนสถานะ</p>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 28, gap: 12 }}>
           <h2 style={{ margin: 0 }}>รายการจองทั้งหมด: {bookings.length} รายการ</h2>
-          <button
-            onClick={loadBookings}
-            style={{ padding: "10px 14px", borderRadius: 10, border: "0", background: "#392446", color: "white", fontWeight: 700, cursor: "pointer" }}
-          >
+          <button onClick={loadBookings} style={{ padding: "10px 14px", borderRadius: 10, border: 0, background: "#392446", color: "white", fontWeight: 700 }}>
             รีเฟรช
           </button>
         </div>
@@ -96,21 +149,11 @@ export default function AdminPage() {
                     <td style={{ padding: 12 }}>{booking.service}</td>
                     <td style={{ padding: 12 }}>{booking.booking_date} {booking.booking_time}</td>
                     <td style={{ padding: 12 }}>{booking.amount} บาท</td>
+                    <td style={{ padding: 12 }}>{booking.status}</td>
                     <td style={{ padding: 12 }}>
-                      <span style={{ padding: "6px 10px", borderRadius: 999, background: "#f3eadc", fontWeight: 700 }}>
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: 12 }}>
-                      <select
-                        value={booking.status}
-                        onChange={(event) => updateStatus(booking.id, event.target.value)}
-                        style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd", minWidth: 140 }}
-                      >
+                      <select value={booking.status} onChange={(event) => updateStatus(booking.id, event.target.value)}>
                         {statuses.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
+                          <option key={status} value={status}>{status}</option>
                         ))}
                       </select>
                     </td>
@@ -118,10 +161,6 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
-          )}
-
-          {!loading && bookings.length === 0 && (
-            <p style={{ color: "#6b5d70" }}>ยังไม่มีรายการจอง</p>
           )}
         </div>
       </section>
