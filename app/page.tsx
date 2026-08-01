@@ -238,19 +238,7 @@ export default function Home() {
 
           <aside style={{ background: "white", padding: 22, borderRadius: 16 }}>
             <h2>รายการจองล่าสุด</h2>
-
-            <div style={{ display: "grid", gap: 12 }}>
-              {bookings.map((booking) => (
-                <article key={booking.id} style={{ padding: 14, borderRadius: 12, background: "#f8f1e7" }}>
-                  <strong>{booking.customer_name}</strong>
-                  <p>{booking.service}</p>
-                  <p>{booking.booking_date} · {booking.booking_time}</p>
-                  <p>LINE: {booking.line_id}</p>
-                  <b>{booking.status}</b>
-                </article>
-              ))}
-            </div>
-          </aside>
+            
         </section>
       </section>
     </main>
