@@ -44,6 +44,24 @@ const slots = [
   "18:00"
 ];
 
+function getBangkokToday() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
+function getBangkokTime() {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(new Date());
+}
+
 const starterBookings: Booking[] = [
   {
     id: "demo-1",
@@ -73,7 +91,7 @@ const starterBookings: Booking[] = [
 
 export default function Home() {
   const [service, setService] = useState(services[0].name);
-  const [bookingDate, setBookingDate] = useState("2026-08-01");
+  const [bookingDate, setBookingDate] = useState(getBangkokToday());
   const [bookingTime, setBookingTime] = useState(slots[3]);
   const [availableSlots, setAvailableSlots] = useState(slots);
   const [customerName, setCustomerName] = useState("");
@@ -204,7 +222,7 @@ export default function Home() {
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
               วันที่
-              <input value={bookingDate} onChange={(event) => setBookingDate(event.target.value)} type="date" required style={{ padding: 12 }} />
+              <input value={bookingDate} onChange={(event) => setBookingDate(event.target.value)} type="date" min={getBangkokToday()} required style={{ padding: 12 }} />
             </label>
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
