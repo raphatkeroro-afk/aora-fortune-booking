@@ -55,7 +55,7 @@ export default function CheckBookingPage() {
           ตรวจสอบคิว
         </p>
 
-        <h1 style={{ fontSize: 46, lineHeight: 1, marginTop: 24 }}>
+        <h1 style={{ fontSize: "clamp(34px, 8vw, 46px)", lineHeight: 1.05, marginTop: 24 }}>
           Aora Fortune Booking
         </h1>
 
@@ -89,7 +89,9 @@ export default function CheckBookingPage() {
         <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
           {bookings.map((booking) => (
             <article key={booking.id} style={{ background: "white", padding: 20, borderRadius: 16 }}>
-              <strong>{booking.customer_name}</strong>
+              <strong style={{ display: "block", fontSize: 18, wordBreak: "break-word" }}>
+  {booking.customer_name}
+</strong>
               <p>{booking.service}</p>
               <p>{booking.booking_date} เวลา {booking.booking_time}</p>
               <p>ยอดชำระ {booking.amount.toLocaleString("th-TH")} บาท</p>
