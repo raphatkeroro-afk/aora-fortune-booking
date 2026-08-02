@@ -257,7 +257,15 @@ const nextSlots =
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
               เบอร์โทร
-              <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="08x-xxx-xxxx" required style={{ padding: 12 }} />
+              <input
+  value={phone}
+  onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
+  placeholder="08x-xxx-xxxx"
+  inputMode="numeric"
+  pattern="[0-9]{9,10}"
+  required
+  style={{ padding: 12 }}
+/>
             </label>
 
             <label style={{ display: "grid", gap: 8, marginTop: 14 }}>
