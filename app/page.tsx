@@ -110,7 +110,13 @@ export default function Home() {
   async function loadAvailableSlots() {
     const response = await fetch(`/api/bookings/available-slots?date=${bookingDate}`);
     const data = await response.json();
-    const nextSlots = data.availableSlots || slots;
+    const today = getBangkokToday();
+const currentTime = getBangkokTime();
+const apiSlots = data.availableSlots || slots;
+const nextSlots =
+  bookingDate === today
+    ? apiSlots.filter((slot: string) => slot > currentTime)
+    : apiSlots;
 
     setAvailableSlots(nextSlots);
 
