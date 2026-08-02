@@ -1,54 +1,103 @@
-import { NextResponse } from "next/server";
+"use client";
 
-function getSupabaseConfig() {
-  return {
-    supabaseUrl: process.env.SUPABASE_URL,
-    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY
-  };
-}
+import { FormEvent, useState } from "react";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q")?.trim() || "";
-  const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
+type Booking = {
+  id: string;
+  customer_name: string;
+  phone: string;
+  line_id: string;
+  service: string;
+  booking_date: string;
+  booking_time: string;
+  amount: number;
+  status: string;
+  created_at: string;
+};
 
-  if (!query) {
-    return NextResponse.json(
-      { error: "กรุณากรอกเบอร์โทรหรือ LINE ID" },
-      { status: 400 }
-    );
-  }
+export default function CheckBookingPage() {
+  const [query, setQuery] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    return NextResponse.json(
-      { error: "Missing Supabase config" },
-      { status: 500 }
-    );
-  }
+  async function checkBooking(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsLoading(true);
+    setMessage("");
+    setBookings([]);
 
-  const normalizedPhone = query.replace(/\D/g, "");
-  const keyword = normalizedPhone || query;
-  const encodedKeyword = encodeURIComponent(keyword);
+    try {
+      const response = await fetch(`/api/bookings/check?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
 
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/bookings?or=(phone.eq.${encodedKeyword},line_id.eq.${encodedKeyword})&select=id,customer_name,phone,line_id,service,booking_date,booking_time,amount,status,created_at&order=created_at.desc`,
-    {
-      headers: {
-        apikey: serviceRoleKey,
-        Authorization: `Bearer ${serviceRoleKey}`
-      },
-      cache: "no-store"
+      if (!response.ok) {
+        setMessage(data.error || "ไม่สามารถตรวจสอบคิวได้");
+        return;
+      }
+
+      setBookings(data.bookings || []);
+
+      if (!data.bookings || data.bookings.length === 0) {
+        setMessage("ไม่พบรายการจองจากข้อมูลนี้");
+      }
+    } catch {
+      setMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsLoading(false);
     }
-  );
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: "ไม่สามารถตรวจสอบคิวได้" },
-      { status: 500 }
-    );
   }
 
-  const bookings = await response.json();
+  return (
+    <main style={{ minHeight: "100vh", padding: 24, fontFamily: "sans-serif", background: "#f8f1e7" }}>
+      <section style={{ maxWidth: 900, margin: "0 auto" }}>
+        <p style={{ display: "inline-block", padding: "8px 14px", borderRadius: 999, background: "#392446", color: "white", fontWeight: 700 }}>
+          ตรวจสอบคิว
+        </p>
 
-  return NextResponse.json({ bookings });
+        <h1 style={{ fontSize: 46, lineHeight: 1, marginTop: 24 }}>
+          Aora Fortune Booking
+        </h1>
+
+        <p style={{ fontSize: 18, lineHeight: 1.7, color: "#6b5d70" }}>
+          กรอกเบอร์โทรหรือ LINE ID ที่ใช้จอง เพื่อดูสถานะคิวของคุณ
+        </p>
+
+        <form onSubmit={checkBooking} style={{ marginTop: 28, background: "white", padding: 24, borderRadius: 16 }}>
+          <label style={{ display: "grid", gap: 8 }}>
+            เบอร์โทร หรือ LINE ID
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value.trim())}
+              placeholder="เช่น 0987654331 หรือ rapjj"
+              required
+              style={{ padding: 12 }}
+            />
+          </label>
+
+          <button
+            disabled={isLoading}
+            type="submit"
+            style={{ marginTop: 16, padding: 14, borderRadius: 12, border: 0, background: "#392446", color: "white", fontWeight: 700 }}
+          >
+            {isLoading ? "กำลังตรวจสอบ..." : "ตรวจสอบคิว"}
+          </button>
+
+          {message && <p style={{ marginTop: 14, fontWeight: 700 }}>{message}</p>}
+        </form>
+
+        <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
+          {bookings.map((booking) => (
+            <article key={booking.id} style={{ background: "white", padding: 20, borderRadius: 16 }}>
+              <strong>{booking.customer_name}</strong>
+              <p>{booking.service}</p>
+              <p>{booking.booking_date} เวลา {booking.booking_time}</p>
+              <p>ยอดชำระ {booking.amount.toLocaleString("th-TH")} บาท</p>
+              <p><strong>สถานะ: {booking.status}</strong></p>
+            </article>
+          ))}
+        </section>
+      </section>
+    </main>
+  );
 }
