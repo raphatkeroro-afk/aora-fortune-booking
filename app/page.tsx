@@ -92,8 +92,15 @@ const starterBookings: Booking[] = [
 export default function Home() {
   const [service, setService] = useState(services[0].name);
   const [bookingDate, setBookingDate] = useState(getBangkokToday());
-  const [bookingTime, setBookingTime] = useState(slots[3]);
-  const [availableSlots, setAvailableSlots] = useState(slots);
+  const [bookingTime, setBookingTime] = useState(() => {
+  const currentTime = getBangkokTime();
+  return slots.find((slot) => slot > currentTime) || "";
+});
+
+const [availableSlots, setAvailableSlots] = useState<string[]>(() => {
+  const currentTime = getBangkokTime();
+  return slots.filter((slot) => slot > currentTime);
+});
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [lineId, setLineId] = useState("");
